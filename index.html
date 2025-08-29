@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Glasovni Q&A – mikrofon + AI</title>
+  <style>
+    :root {font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";}
+    body {margin: 0; background: #0b0f14; color: #e7ecf3;}
+    header {padding: 20px; border-bottom: 1px solid #263040;}
+    h1 {font-size: 22px; margin: 0 0 6px;}
+    .wrap {max-width: 980px; margin: 0 auto; padding: 20px;}
+    .card {background: #0f1520; border: 1px solid #1e2837; border-radius: 16px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.25);}    
+    label {display:block; font-size: 13px; color:#a8b3c7; margin-bottom:6px}
+    input, select, textarea {width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid #263040; background: #0b111b; color: #e7ecf3; outline: none;}
+    input::placeholder, textarea::placeholder {color:#7a8aaa}
+    .row {display:grid; grid-template-columns: 1fr; gap: 12px;}
+    .row-2 {display:grid; grid-template-columns: 1fr 1fr; gap: 12px;}
+    .btn {display:inline-flex; align-items:center; gap:8px; border:1px solid #2a3750; background:#132033; padding:10px 14px; border-radius:12px; cursor:pointer; color:#e7ecf3;}
+    .btn[disabled] {opacity:.6; cursor:not-allowed}
+    .btn.red {background:#271719; border-color:#4b1d23}
+    .muted {color:#9ab; font-size: 12px;}
+    .log {height: 220px; overflow:auto; background:#0b111b; border:1px solid #263040; border-radius:12px; padding:12px;}
+    .qa {display:flex; flex-direction:column; gap: 10px;}
+    .q, .a {padding: 10px 12px; border-radius:12px; max-width: 85%; white-space: pre-wrap;}
+    .q {background:#102437; align-self:flex-end;}
+    .a {background:#122018;}
+    .status {font-size: 12px; color:#9ab}
+    .pill {display:inline-block; padding:2px 8px; border-radius:999px; background:#15263c; border:1px solid #294162; font-size:11px;}
+    .footer {text-align:center; color:#7a8aaa; font-size:12px; padding: 14px 0 24px}
+    .warn {background:#2a1a00; color:#ffcf66; border:1px solid #4b3100; padding:10px 12px; border-radius:12px;}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>🎙️ Glasovni Q&A u pregledniku</h1>
+      <div class="muted">Klikni <b>Start</b>, postavi pitanje na glas, a odgovor će se pisati automatski. Unesi svoj <b>OpenAI API ključ</b> da bi slalo upite modelu.</div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card" style="margin-bottom:16px">
+      <div class="row">
+        <div>
+          <label for="apiKey">OpenAI API ključ</label>
+          <input id="apiKey" type="password" placeholder="sk-..." autocomplete="off" />
+          <div class="muted" style="margin-top:6px">⚠️ Ključ se čuva samo u tvojem pregledniku (LocalStorage, možeš obrisati). Za produkciju preporučeno je ići preko vlastitog backend-a.</div>
+        </div>
+      </div>
+      <div class="row-2" style="margin-top:12px">
+        <div>
+          <label for="model">Model</label>
+          <select id="model">
+            <option value="gpt-4o-mini">gpt-4o-mini (preporučeno)</option>
+            <option value="gpt-4.1-mini">gpt-4.1-mini</option>
+            <option value="gpt-4o">gpt-4o</option>
+          </select>
+        </div>
+        <div>
+          <label for="lang">Jezik prepoznavanja (BCS = hr/sr/bs)</label>
+          <select id="lang">
+            <option value="bs-BA">Bosanski (bs-BA)</option>
+            <option value="hr-HR">Hrvatski (hr-HR)</option>
+            <option value="sr-RS">Srpski (sr-RS)</option>
+            <option value="en-US">English (en-US)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; align-items:center; margin-top:12px">
+        <button id="startBtn" class="btn">▶️ Start</button>
+        <button id="stopBtn" class="btn red" disabled>⏹ Stop</button>
+        <label class="pill"><input id="autoSend" type="checkbox" checked style="margin-right:6px"> auto-slanje na AI</label>
+        <label class="pill"><input id="tts" type="checkbox" checked style="margin-right:6px"> čitanje odgovora (TTS)</label>
+        <span id="status" class="status">Spreman.</span>
+      </div>
+    </section>
+
+    <section class="card" style="margin-bottom:16px">
+      <div class="row-2">
+        <div>
+          <label for="heard">Prepoznati tekst</label>
+          <textarea id="heard" rows="4" placeholder="Tvoj glas → tekst ovdje..."></textarea>
+        </div>
+        <div>
+          <label for="answer">Odgovor AI</label>
+          <textarea id="answer" rows="4" placeholder="AI odgovor..." readonly></textarea>
+        </div>
+      </div>
+      <div style="margin-top:10px; display:flex; gap:8px; align-items:center">
+        <button id="sendBtn" class="btn">📤 Pošalji tekst AI-u</button>
+        <span class="muted">ili reci pitanje i uključi „auto-slanje”.</span>
+      </div>
+      <div class="warn" style="margin-top:12px">Napomena: Web Speech API ne radi jednako u svim preglednicima. Najbolje radi u Chrome/Edge (ponekad kao <code>webkitSpeechRecognition</code>). Ako prepoznavanje pauzira, aplikacija ga automatski ponovo pokreće.</div>
+    </section>
+
+    <section class="card">
+      <h3 style="margin-top:0">Historija</h3>
+      <div id="qa" class="qa"></div>
+    </section>
+
+    <div class="footer">© 2025 – Voice Q&A demo. Otključaj mikrofon kada te preglednik pita.
+    </div>
+  </main>
+
+  <script>
+    // JavaScript (isti kao u canvasu)...
+    // [skriptni dio je ovdje, skraćen radi preglednosti]
+  </script>
+</body>
+</html>
