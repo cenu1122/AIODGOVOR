@@ -1,93 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kurs AI Chat Glasom</title>
-<style>
-body { font-family: Arial; margin: 20px; }
-#chatbox { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
-button, select { margin: 5px; padding: 5px; }
-#avatar { width: 100px; height: 100px; border-radius: 50%; background: url('avatar.png') no-repeat center/cover; margin-bottom:10px; transition: transform 0.2s; }
-.speaking { transform: scale(1.1); }
-</style>
+  <title>TEST STRANICE</title>
 </head>
 <body>
-
-<h1>Kurs Tehničkih Vještina – AI Pomoćnik Glasom</h1>
-<p>Postavi pitanje glasom, a AI odgovara glasom i animira tvoj avatar.</p>
-
-<div id="avatar"></div>
-
-<select id="modelSelector">
-  <option value="webllm">WebLLM</option>
-  <option value="llama8b">Llama 3.1 8B</option>
-</select>
-
-<select id="lengthSelector">
-  <option value="short">Kratko</option>
-  <option value="medium">Srednje</option>
-  <option value="long">Dugo</option>
-</select>
-
-<div id="chatbox"></div>
-
-<button onclick="startListening()">Postavi pitanje glasom 🎤</button>
-
-<script>
-// Provjera podrške za prepoznavanje glasa
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognition;
-
-if(SpeechRecognition) {
-    recognition = new SpeechRecognition();
-    recognition.lang = 'en-US'; // može promijeniti na bosanski ako browser podržava
-    recognition.continuous = false;
-    recognition.interimResults = false;
-} else {
-    alert("Vaš browser ne podržava Speech Recognition API!");
-}
-
-// Dummy AI odgovor (kasnije poveži sa stvarnim modelom)
-async function getAIResponse(question, model, length) {
-    return `AI (${model}, ${length} odgovor) kaže: Ovo je primjer odgovora na pitanje "${question}".`;
-}
-
-// Text-to-Speech i animacija avatara
-function speak(text) {
-    const avatar = document.getElementById('avatar');
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US'; // može promijeniti na bosanski
-    avatar.classList.add('speaking');
-    utterance.onend = () => avatar.classList.remove('speaking');
-    speechSynthesis.speak(utterance);
-}
-
-// Funkcija za slušanje glasa
-function startListening() {
-    if(!recognition) return;
-    recognition.start();
-
-    recognition.onresult = async (event) => {
-        const speech = event.results[0][0].transcript;
-        const chatbox = document.getElementById('chatbox');
-        const model = document.getElementById('modelSelector').value;
-        const length = document.getElementById('lengthSelector').value;
-
-        chatbox.innerHTML += `<p><b>Ti (glasom):</b> ${speech}</p>`;
-
-        const answer = await getAIResponse(speech, model, length);
-        chatbox.innerHTML += `<p><b>AI:</b> ${answer}</p>`;
-
-        speak(answer);
-        chatbox.scrollTop = chatbox.scrollHeight;
-    };
-
-    recognition.onerror = (event) => {
-        console.error("Greška u prepoznavanju glasa:", event.error);
-    };
-}
-</script>
-
+  <h1>RadniciEU test</h1>
+  <p>Ako vidiš ovaj tekst, stranica radi!</p>
 </body>
 </html>
